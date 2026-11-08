@@ -1,0 +1,72 @@
+---
+/** Compact language switch for small screens: globe + the other language's code. */
+import Icon from './Icon.astro';
+import { href, otherLang, useT, type Lang, type PageKey } from '../i18n';
+
+interface Props {
+  lang: Lang;
+  page: PageKey | null;
+  dark?: boolean;
+  class?: string;
+}
+const { lang, page, dark = false, class: cls } = Astro.props;
+const t = useT(lang);
+const to = otherLang(lang);
+const label = { ka: { short: 'GEO', name: 'ქართული' }, en: { short: 'ENG', name: 'English' } }[to];
+---
+
+<a
+  class:list={['lang-globe', { 'lang-globe--dark': dark }, cls]}
+  href={href(to, page ?? 'home')}
+  hreflang={to}
+  lang={to}
+  data-lang-link
+>
+  <Icon name="globe" />
+  <span aria-hidden="true">{label.short}</span>
+  <span class="visually-hidden">{label.name} — {t.nav.langLabel}</span>
+</a>
+
+<style>
+  .lang-globe {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 44px;
+    padding: 0 14px 0 11px;
+    border-radius: 999px;
+    border: 1px solid var(--line-strong);
+    background: var(--paper);
+    color: var(--text);
+    font-size: 0.75rem;
+    font-weight: 750;
+    letter-spacing: 0.08em;
+    text-decoration: none;
+    transition:
+      background-color 0.3s var(--ease),
+      transform 0.3s var(--ease);
+  }
+  .lang-globe :global(.icon) {
+    width: 19px;
+    height: 19px;
+    transition: transform 0.6s var(--ease);
+  }
+  .lang-globe:hover {
+    background: var(--sun-soft);
+  }
+  .lang-globe:hover :global(.icon) {
+    transform: rotate(180deg);
+  }
+  .lang-globe:active {
+    transform: scale(0.94);
+  }
+  .lang-globe--dark {
+    border-color: rgb(255 248 236 / 0.24);
+    background: rgb(255 248 236 / 0.06);
+    color: var(--cream);
+  }
+  .lang-globe--dark:hover {
+    background: rgb(255 248 236 / 0.14);
+  }
+</style>

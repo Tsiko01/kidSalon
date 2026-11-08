@@ -1,0 +1,19 @@
+---
+/** Glyph paths of the wordmark, defined once per page and referenced by every <Logo> via <use>. */
+import { logo } from './paths';
+---
+
+<svg class="logo-defs" width="0" height="0" aria-hidden="true" focusable="false">
+  <defs>
+    {logo.glyphs.map((g, i) => <path id={`ks-g${i}`} d={g.d} pathLength="1" />)}
+  </defs>
+</svg>
+
+<style>
+  .logo-defs {
+    position: absolute;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+  }
+</style>

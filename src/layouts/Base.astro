@@ -1,0 +1,109 @@
+---
+import '../styles/global.css';
+import { ClientRouter } from 'astro:transitions';
+import { getImage } from 'astro:assets';
+import Seo from '../components/Seo.astro';
+import Loader from '../components/Loader.astro';
+import LogoDefs from '../components/brand/LogoDefs.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import WhatsAppFab from '../components/WhatsAppFab.astro';
+import { useT, type Lang, type PageKey } from '../i18n';
+import { getPhoto, widthsFor } from '../lib/photos';
+import { salonSchema, websiteSchema, breadcrumbSchema, webPageSchema } from '../lib/schema';
+
+interface Props {
+  lang: Lang;
+  page: PageKey | null;
+  /** Extra JSON-LD objects for this page */
+  jsonLd?: object[];
+  /** Photo to preload as the LCP image (must match the <Photo> props used in the page) */
+  preload?: { name: string; sizes: string; maxWidth?: number };
+  /** schema.org WebPage subtype */
+  pageType?: string;
+}
+
+const { lang, page, jsonLd = [], preload, pageType } = Astro.props;
+const t = useT(lang);
+const seo = page ? t.seo[page] : t.seo.notFound;
+
+// LCP preload — same widths/format as <Photo>, so the browser reuses the response.
+let preloadLink: { srcset: string; sizes: string } | null = null;
+let heroAbs: string | undefined;
+if (preload) {
+  const img = getPhoto(preload.name);
+  if (img) {
+    const res = await getImage({ src: img, widths: widthsFor(img, preload.maxWidth), format: 'webp', quality: 72 });
+    preloadLink = { srcset: res.srcSet.attribute, sizes: preload.sizes };
+    heroAbs = new URL(res.src, Astro.site).href;
+  }
+}
+
+const schemas: object[] = page
+  ? [
+      salonSchema(lang, page === 'home' ? heroAbs : undefined),
+      websiteSchema(lang),
+      webPageSchema(lang, page, pageType),
+      ...(page !== 'home' ? [breadcrumbSchema(lang, page)] : []),
+      ...jsonLd,
+    ]
+  : [];
+---
+
+<!doctype html>
+<html lang={lang} dir="ltr" data-page={page ?? '404'}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <script is:inline>
+      var d = document.documentElement;
+      // Theme before first paint: saved choice, otherwise the system preference.
+      try {
+        var th = localStorage.getItem('ks-theme');
+        if (th !== 'dark' && th !== 'light') th = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        d.dataset.theme = th;
+      } catch (e) {}
+      // Keep the theme when the client-side router swaps in the next page.
+      document.addEventListener('astro:before-swap', function (e) {
+        var cur = document.documentElement.dataset.theme;
+        if (cur) e.newDocument.documentElement.dataset.theme = cur;
+      });
+      // First visit of the session → play the intro (skipped for reduced motion).
+      try {
+        if (!sessionStorage.getItem('ks-intro') && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          d.classList.add('has-loader');
+          sessionStorage.setItem('ks-intro', '1');
+          setTimeout(function () { d.classList.remove('has-loader'); }, 2100);
+        }
+      } catch (e) {}
+    </script>
+    {
+      preloadLink && (
+        <link
+          rel="preload"
+          as="image"
+          type="image/webp"
+          imagesrcset={preloadLink.srcset}
+          imagesizes={preloadLink.sizes}
+          fetchpriority="high"
+        />
+      )
+    }
+    <Seo lang={lang} page={page} title={seo.title} description={seo.description} jsonLd={schemas} ogImageAlt={t.meta.tagline} />
+    <ClientRouter />
+  </head>
+  <body>
+    <LogoDefs />
+    <a class="skip-link" href="#main">{t.nav.skip}</a>
+    <Loader lang={lang} />
+    <Header lang={lang} page={page} />
+    <main id="main" tabindex="-1">
+      <slot />
+    </main>
+    <Footer lang={lang} page={page} />
+    <WhatsAppFab lang={lang} />
+    <script>
+      import '../scripts/main';
+    </script>
+  </body>
+</html>

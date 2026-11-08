@@ -1,0 +1,68 @@
+---
+/**
+ * Responsive WebP photo with srcset sized from the source file (AVIF was
+ * larger than WebP for these photos, so WebP only).
+ * `name` is a path inside src/assets/photos without extension ("hero",
+ * "portfolio/girls-bob"). If the file is missing, a branded panel renders instead.
+ */
+import { Image } from 'astro:assets';
+import { getPhoto, widthsFor } from '../lib/photos';
+import Logo from './brand/Logo.astro';
+
+interface Props {
+  name: string;
+  alt: string;
+  sizes: string;
+  class?: string;
+  /** Above-the-fold image: eager + high fetch priority */
+  priority?: boolean;
+  /** CSS aspect-ratio for the frame, e.g. "4 / 5". Defaults to the image's own ratio. */
+  ratio?: string;
+  /** object-position */
+  position?: string;
+  maxWidth?: number;
+}
+
+const { name, alt, sizes, class: cls, priority = false, ratio, position, maxWidth } = Astro.props;
+const img = getPhoto(name);
+const style = [ratio && `aspect-ratio:${ratio}`, position && `--pos:${position}`].filter(Boolean).join(';');
+---
+
+<div class:list={['media', cls]} style={style || undefined}>
+  {
+    img ? (
+      <Image
+        src={img}
+        alt={alt}
+        format="webp"
+        widths={widthsFor(img, maxWidth)}
+        sizes={sizes}
+        quality={72}
+        loading={priority ? 'eager' : 'lazy'}
+        fetchpriority={priority ? 'high' : 'auto'}
+        decoding={priority ? 'sync' : 'async'}
+      />
+    ) : (
+      <div class="media__fallback" role="img" aria-label={alt}>
+        <Logo variant="sticker" />
+      </div>
+    )
+  }
+</div>
+
+<style>
+  .media :global(img) {
+    object-position: var(--pos, 50% 50%);
+  }
+  .media__fallback {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background: radial-gradient(circle at 30% 20%, var(--sun-soft), transparent 55%), var(--sky-soft);
+  }
+  .media__fallback :global(svg) {
+    width: 46%;
+    max-width: 220px;
+  }
+</style>

@@ -1,0 +1,216 @@
+---
+/**
+ * Testimonial cards from src/config/reviews.ts — or, while that list is empty,
+ * an honest invitation to leave the first review (no invented testimonials).
+ */
+import Icon from './Icon.astro';
+import { fmt, useT, type Lang } from '../i18n';
+import { reviews, reviewLinks } from '../config/reviews';
+import { whatsappUrl } from '../config/site';
+
+interface Props {
+  lang: Lang;
+  limit?: number;
+  emptyTitle?: string;
+  emptyText?: string;
+}
+const { lang, limit, emptyTitle, emptyText } = Astro.props;
+const t = useT(lang);
+const list = (limit ? reviews.slice(0, limit) : reviews).slice().sort((a, b) => b.date.localeCompare(a.date));
+const dateFmt = new Intl.DateTimeFormat(lang === 'ka' ? 'ka-GE' : 'en-GB', { year: 'numeric', month: 'long' });
+const stars = [1, 2, 3, 4, 5];
+---
+
+{
+  list.length ? (
+    <ul role="list" class="reviews">
+      {list.map((r, i) => (
+        <li class="review" data-reveal style={`--d:${i % 3}`}>
+          <figure>
+            <div class="review__stars" role="img" aria-label={fmt(t.reviewsBlock.ratingLabel, { n: r.rating })}>
+              {stars.map((n) => (
+                <Icon name="star" filled={n <= r.rating} class={n <= r.rating ? 'is-on' : 'is-off'} />
+              ))}
+            </div>
+            <blockquote>
+              <p>{r.text[lang]}</p>
+            </blockquote>
+            <figcaption>
+              <span class="review__avatar" aria-hidden="true">
+                {r.author.charAt(0)}
+              </span>
+              <span>
+                <strong>{r.author}</strong>
+                <span class="review__meta">
+                  {t.reviewsBlock.source[r.source]} · <time datetime={r.date}>{dateFmt.format(new Date(r.date))}</time>
+                </span>
+              </span>
+              {r.link && (
+                <a class="review__link" href={r.link} target="_blank" rel="noopener noreferrer">
+                  {t.reviewsBlock.viewOriginal}
+                  <span class="visually-hidden"> {t.common.newTab}</span>
+                </a>
+              )}
+            </figcaption>
+          </figure>
+        </li>
+      ))}
+    </ul>
+  ) : (
+    <div class="reviews-empty" data-reveal>
+      <div class="reviews-empty__stars" aria-hidden="true">
+        {stars.map(() => (
+          <Icon name="star" />
+        ))}
+      </div>
+      <h3 class="reviews-empty__title">{emptyTitle ?? t.reviewsBlock.emptyTitle}</h3>
+      <p class="reviews-empty__text">{emptyText ?? t.reviewsBlock.emptyText}</p>
+      <div class="btn-row">
+        <a class="btn" href={reviewLinks.facebook} target="_blank" rel="noopener noreferrer">
+          <Icon name="facebook" />
+          {t.reviewsBlock.write}
+          <span class="visually-hidden">{t.common.newTab}</span>
+        </a>
+        {reviewLinks.google && (
+          <a class="btn btn--ghost" href={reviewLinks.google} target="_blank" rel="noopener noreferrer">
+            <Icon name="google" />
+            {t.reviewsBlock.writeGoogle}
+            <span class="visually-hidden">{t.common.newTab}</span>
+          </a>
+        )}
+        <a class="btn btn--ghost" href={whatsappUrl()} target="_blank" rel="noopener noreferrer">
+          <Icon name="whatsapp" />
+          {t.reviewsBlock.whatsapp}
+          <span class="visually-hidden">{t.common.newTab}</span>
+        </a>
+      </div>
+    </div>
+  )
+}
+
+<style>
+  .reviews {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+    gap: 20px;
+  }
+  .review figure {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding: 28px;
+    border-radius: var(--r-lg);
+    background: var(--paper);
+    border: 1px solid var(--line);
+  }
+  .review__stars {
+    display: flex;
+    gap: 3px;
+  }
+  .review__stars :global(.icon) {
+    width: 20px;
+    height: 20px;
+  }
+  .review__stars :global(.is-on) {
+    color: #e0a100;
+  }
+  .review__stars :global(.is-off) {
+    color: var(--line-strong);
+  }
+  .review blockquote {
+    flex: 1;
+    margin: 0;
+    font-family: var(--f-display);
+    font-size: 1.1875rem;
+    line-height: 1.5;
+    font-variation-settings: 'SOFT' 100;
+  }
+  .review blockquote p::before {
+    content: '“';
+  }
+  .review blockquote p::after {
+    content: '”';
+  }
+  .review figcaption {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    font-size: var(--fs-sm);
+  }
+  .review__avatar {
+    width: 42px;
+    height: 42px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--sky-soft);
+    font-weight: 700;
+  }
+  .review__meta {
+    display: block;
+    color: var(--ink-2);
+    font-size: var(--fs-xs);
+  }
+  .review__link {
+    margin-left: auto;
+    font-size: var(--fs-xs);
+    font-weight: 650;
+  }
+
+  .reviews-empty {
+    display: grid;
+    justify-items: center;
+    gap: 18px;
+    text-align: center;
+    padding: clamp(36px, 6vw, 72px) clamp(24px, 5vw, 64px);
+    border-radius: var(--r-xl);
+    background: var(--paper);
+    border: 1.5px dashed var(--line-strong);
+  }
+  .reviews-empty__stars {
+    display: flex;
+    gap: 6px;
+    color: var(--sun);
+  }
+  .reviews-empty__stars :global(.icon) {
+    width: 30px;
+    height: 30px;
+    stroke-width: 1.5;
+    animation: star-bob 3s var(--ease) infinite;
+  }
+  .reviews-empty__stars :global(.icon:nth-child(2)) {
+    animation-delay: 0.15s;
+  }
+  .reviews-empty__stars :global(.icon:nth-child(3)) {
+    animation-delay: 0.3s;
+  }
+  .reviews-empty__stars :global(.icon:nth-child(4)) {
+    animation-delay: 0.45s;
+  }
+  .reviews-empty__stars :global(.icon:nth-child(5)) {
+    animation-delay: 0.6s;
+  }
+  @keyframes star-bob {
+    0%,
+    60%,
+    100% {
+      transform: none;
+    }
+    30% {
+      transform: translateY(-6px) rotate(8deg);
+    }
+  }
+  .reviews-empty__title {
+    font-size: var(--fs-h3);
+  }
+  .reviews-empty__text {
+    max-width: 56ch;
+    color: var(--ink-2);
+  }
+  .reviews-empty .btn-row {
+    justify-content: center;
+    margin-top: 8px;
+  }
+</style>

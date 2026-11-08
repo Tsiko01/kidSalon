@@ -1,0 +1,21 @@
+---
+interface Props {
+  eyebrow?: string;
+  title: string;
+  lead?: string;
+  center?: boolean;
+  id?: string;
+  /** heading level (default h2) */
+  as?: 'h2' | 'h3';
+}
+const { eyebrow, title, lead, center = false, id, as: Tag = 'h2' } = Astro.props;
+---
+
+<div class:list={['section-head', { 'section-head--center': center }]} data-reveal>
+  <div class="section-head__text">
+    {eyebrow && <p class="eyebrow">{eyebrow}</p>}
+    <Tag class="h2" id={id}>{title}</Tag>
+    {lead && <p class="lead">{lead}</p>}
+  </div>
+  {Astro.slots.has('default') && <slot />}
+</div>

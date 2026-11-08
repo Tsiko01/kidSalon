@@ -1,0 +1,347 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Icon from '../components/Icon.astro';
+import CtaBand from '../components/CtaBand.astro';
+import { fmt, href, useT, type Lang } from '../i18n';
+import { photoSlots } from '../config/photos';
+import { serviceById } from '../config/services';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = useT(lang);
+const g = t.guide;
+const phases = [
+  { id: 'before', icon: 'calendar', data: g.before },
+  { id: 'during', icon: 'smile', data: g.during },
+  { id: 'after', icon: 'star', data: g.after },
+] as const;
+const careIcons = ['comb', 'sparkle', 'heart', 'scissors'] as const;
+const toc = [
+  ...phases.map((p) => ({ id: p.id, label: p.data.title })),
+  { id: 'ideas', label: g.ideas.title },
+  { id: 'care', label: g.care.title },
+  { id: 'rhythm', label: g.rhythm.title },
+];
+---
+
+<Base lang={lang} page="guide" preload={{ name: 'guide-hero', sizes: '(min-width: 960px) 40vw, 92vw' }}>
+  <PageHero
+    lang={lang}
+    page="guide"
+    eyebrow={g.eyebrow}
+    title={g.title}
+    lead={g.lead}
+    photo={{ name: 'guide-hero', alt: photoSlots['guide-hero'].alt[lang] }}
+  />
+
+  <nav class="toc" aria-label={g.tocLabel}>
+    <div class="container">
+      <ol role="list" class="toc__list">
+        {toc.map((it, i) => (
+          <li><a href={`#${it.id}`}><span aria-hidden="true">{i + 1}</span>{it.label}</a></li>
+        ))}
+      </ol>
+    </div>
+  </nav>
+
+  <!-- phases -->
+  {
+    phases.map((phase, pi) => (
+      <section class:list={['section', 'phase', { 'section--sand': pi === 1 }]} id={phase.id} aria-labelledby={`${phase.id}-title`}>
+        <div class="container phase__grid">
+          <div class="phase__head" data-reveal>
+            <span class="phase__icon"><Icon name={phase.icon} /></span>
+            <p class="eyebrow">{`${pi + 1} / 3`}</p>
+            <h2 id={`${phase.id}-title`} class="h2">{phase.data.title}</h2>
+          </div>
+          <ol role="list" class="tips">
+            {phase.data.items.map((tip, i) => (
+              <li class="tip" data-reveal style={`--d:${i % 3}`}>
+                <span class="tip__num" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+                <h3 class="tip__title">{tip.title}</h3>
+                <p>{tip.text}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+    ))
+  }
+
+  <!-- ideas -->
+  <section class="section section--sky" id="ideas" aria-labelledby="ideas-title">
+    <div class="container">
+      <div class="section-head" data-reveal>
+        <div class="section-head__text">
+          <h2 id="ideas-title" class="h2">{g.ideas.title}</h2>
+          <p class="lead">{g.ideas.lead}</p>
+        </div>
+      </div>
+      <ul role="list" class="ideas">
+        {
+          g.ideas.items.map((idea, i) => {
+            const svc = serviceById(idea.service);
+            return (
+              <li class="idea" data-reveal style={`--d:${i}`}>
+                <span class="chip chip--sun">{idea.age}</span>
+                <h3 class="idea__title">{idea.title}</h3>
+                <p>{idea.text}</p>
+                {svc && (
+                  <a class="link-arrow" href={href(lang, 'booking', `?service=${svc.id}`)}>
+                    {fmt(g.ideas.book, { service: svc.name[lang] })}
+                    <Icon name="arrow" />
+                  </a>
+                )}
+              </li>
+            );
+          })
+        }
+      </ul>
+    </div>
+  </section>
+
+  <!-- care -->
+  <section class="section" id="care" aria-labelledby="care-title">
+    <div class="container care__grid">
+      <h2 id="care-title" class="h2" data-reveal>{g.care.title}</h2>
+      <ul role="list" class="care">
+        {
+          g.care.items.map((c, i) => (
+            <li data-reveal style={`--d:${i}`}>
+              <span class="care__icon"><Icon name={careIcons[i]} /></span>
+              <div>
+                <h3 class="care__title">{c.title}</h3>
+                <p>{c.text}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <!-- rhythm -->
+  <section class="section section--tight" id="rhythm" aria-labelledby="rhythm-title">
+    <div class="container--narrow rhythm" data-reveal>
+      <h2 id="rhythm-title" class="h3">{g.rhythm.title}</h2>
+      <p class="muted">{g.rhythm.lead}</p>
+      <table class="rhythm__table">
+        <caption class="visually-hidden">{g.rhythm.title}</caption>
+        <thead>
+          <tr><th scope="col">{g.rhythm.colType}</th><th scope="col">{g.rhythm.colEvery}</th></tr>
+        </thead>
+        <tbody>
+          {g.rhythm.rows.map((r) => (
+            <tr><th scope="row">{r.type}</th><td>{r.every}</td></tr>
+          ))}
+        </tbody>
+      </table>
+      <div class="btn-row">
+        <a class="btn btn--sun" href={href(lang, 'booking')}>{t.common.bookNow}<Icon name="arrow" class="icon--arrow" /></a>
+        <a class="btn btn--ghost" href={href(lang, 'faq')}>{t.common.readFaq}</a>
+      </div>
+    </div>
+  </section>
+
+  <CtaBand lang={lang} />
+</Base>
+
+<style>
+  .toc {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    padding-block: 14px;
+    background: color-mix(in srgb, var(--bg) 92%, transparent);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-block: 1px solid var(--line);
+  }
+  .toc__list {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .toc__list a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 40px;
+    padding: 0 16px 0 6px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background-color 0.25s var(--ease);
+  }
+  .toc__list a:hover {
+    background: var(--sun-soft);
+  }
+  .toc__list span {
+    width: 28px;
+    height: 28px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--sky-soft);
+    font-size: var(--fs-xs);
+  }
+  .phase__grid {
+    display: grid;
+    grid-template-columns: 0.7fr 1.3fr;
+    gap: clamp(32px, 6vw, 96px);
+    align-items: start;
+  }
+  .phase__head {
+    display: grid;
+    gap: 16px;
+    justify-items: start;
+    position: sticky;
+    top: calc(var(--header-h) + 80px);
+  }
+  .phase__icon {
+    width: 64px;
+    height: 64px;
+    display: grid;
+    place-items: center;
+    border-radius: 22px;
+    background: var(--sun);
+    color: var(--ink);
+  }
+  .tips {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+  }
+  .tip {
+    display: grid;
+    gap: 10px;
+    align-content: start;
+    padding: 28px;
+    border-radius: var(--r-lg);
+    background: var(--paper);
+    border: 1px solid var(--line);
+  }
+  .tip__num {
+    font-family: var(--f-display);
+    font-size: 1.125rem;
+    font-weight: 650;
+    color: var(--sky-deep);
+  }
+  .tip__title {
+    font-size: 1.1875rem;
+  }
+  .tip p {
+    color: var(--ink-2);
+  }
+  .ideas {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+  }
+  .idea {
+    display: grid;
+    gap: 14px;
+    justify-items: start;
+    align-content: start;
+    padding: 28px;
+    border-radius: var(--r-lg);
+    background: var(--paper);
+  }
+  .idea__title {
+    font-size: var(--fs-h4);
+  }
+  .idea p {
+    color: var(--ink-2);
+    flex: 1;
+  }
+  .idea .link-arrow {
+    font-size: var(--fs-sm);
+    margin-top: auto;
+  }
+  .care__grid {
+    display: grid;
+    grid-template-columns: 0.7fr 1.3fr;
+    gap: clamp(32px, 6vw, 96px);
+  }
+  .care {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px 36px;
+  }
+  .care li {
+    display: grid;
+    grid-template-columns: 52px 1fr;
+    gap: 16px;
+  }
+  .care__icon {
+    width: 52px;
+    height: 52px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--pink-soft);
+  }
+  .care__title {
+    font-size: 1.125rem;
+    margin-bottom: 4px;
+  }
+  .care p {
+    color: var(--ink-2);
+  }
+  .rhythm {
+    display: grid;
+    gap: 18px;
+    padding: clamp(28px, 5vw, 56px);
+    border-radius: var(--r-xl);
+    background: var(--sun-soft);
+  }
+  .rhythm__table th,
+  .rhythm__table td {
+    padding: 16px 4px;
+    text-align: left;
+    border-bottom: 1px solid var(--line-strong);
+  }
+  .rhythm__table thead th {
+    font-size: var(--fs-xs);
+    color: var(--ink-2);
+  }
+  .rhythm__table tbody th {
+    font-weight: 650;
+  }
+  .rhythm__table td {
+    text-align: right;
+    font-weight: 650;
+  }
+  .rhythm__table thead th:last-child {
+    text-align: right;
+  }
+  @media (max-width: 1100px) {
+    .ideas {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (max-width: 860px) {
+    .phase__grid,
+    .care__grid {
+      grid-template-columns: 1fr;
+    }
+    .phase__head {
+      position: static;
+    }
+  }
+  @media (max-width: 600px) {
+    .tips,
+    .ideas,
+    .care {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

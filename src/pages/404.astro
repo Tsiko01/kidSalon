@@ -1,0 +1,82 @@
+---
+import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
+import Logo from '../components/brand/Logo.astro';
+import { href, useT } from '../i18n';
+
+// One 404 for the whole site: Georgian first, English below.
+const ka = useT('ka').notFound;
+const en = useT('en').notFound;
+---
+
+<Base lang="ka" page={null}>
+  <section class="nf">
+    <div class="container nf__inner">
+      <span class="nf__logo" aria-hidden="true"><Logo variant="sticker" /></span>
+      <p class="nf__code" aria-hidden="true">4<span><Icon name="scissors" /></span>4</p>
+      <h1 class="h2">{ka.title}</h1>
+      <p class="lead">{ka.text}</p>
+      <div class="btn-row">
+        <a class="btn btn--sun" href={href('ka', 'home')}><Icon name="arrow-left" />{ka.back}</a>
+      </div>
+      <div class="nf__en" lang="en">
+        <h2 class="h3">{en.title}</h2>
+        <p class="muted">{en.text}</p>
+        <a class="link-arrow" href={href('en', 'home')}>{en.back}<Icon name="arrow" /></a>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .nf {
+    min-height: 100svh;
+    display: grid;
+    align-items: center;
+    padding: calc(var(--header-h) + 40px) 0 calc(80px + var(--r-xl));
+    text-align: center;
+  }
+  .nf__inner {
+    display: grid;
+    justify-items: center;
+    gap: 22px;
+  }
+  .nf__logo {
+    width: 110px;
+    transform: rotate(-6deg);
+  }
+  .nf__code {
+    display: flex;
+    align-items: center;
+    gap: 0.1em;
+    font-family: var(--f-display);
+    font-size: clamp(6rem, 4rem + 10vw, 12rem);
+    font-weight: 700;
+    line-height: 1;
+    color: var(--text);
+  }
+  .nf__code span {
+    width: 0.8em;
+    height: 0.8em;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--sun);
+    color: var(--ink);
+  }
+  .nf__code :global(.icon) {
+    width: 50%;
+    height: 50%;
+  }
+  .nf .btn-row {
+    justify-content: center;
+  }
+  .nf__en {
+    display: grid;
+    gap: 10px;
+    justify-items: center;
+    margin-top: 32px;
+    padding-top: 32px;
+    border-top: 1px dashed var(--line-strong);
+  }
+</style>

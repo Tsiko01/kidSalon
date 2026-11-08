@@ -1,0 +1,123 @@
+---
+import Icon from './Icon.astro';
+import Photo from './Photo.astro';
+import { href, useT, type Lang } from '../i18n';
+import { whatsappUrl } from '../config/site';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = useT(lang);
+---
+
+<section class="cta-band" aria-labelledby="cta-title">
+  <div class="container">
+    <div class="cta-band__panel on-accent" data-reveal="scale">
+      <div class="cta-band__text">
+        <p class="eyebrow">{t.cta.eyebrow}</p>
+        <h2 class="h2" id="cta-title">{t.cta.title}</h2>
+        <p class="cta-band__lead">{t.cta.text}</p>
+        <div class="btn-row">
+          <a class="btn" href={href(lang, 'booking')}>
+            {t.common.bookNow}
+            <Icon name="arrow" class="icon--arrow" />
+          </a>
+          <a class="btn btn--ghost" href={whatsappUrl()} target="_blank" rel="noopener noreferrer">
+            <Icon name="whatsapp" />
+            {t.common.writeWhatsapp}
+            <span class="visually-hidden">{t.common.newTab}</span>
+          </a>
+        </div>
+      </div>
+      <div class="cta-band__photos" aria-hidden="true">
+        <Photo name="about-1" alt="" class="media--arch cta-band__p1" ratio="4 / 5" sizes="(min-width: 960px) 220px, 40vw" />
+        <Photo name="hero-detail" alt="" class="media--round cta-band__p2" ratio="1 / 1" sizes="(min-width: 960px) 180px, 34vw" />
+        <Icon name="sparkle" class="cta-band__spark" filled />
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .cta-band {
+    padding-block: var(--section) calc(var(--section) + var(--r-xl));
+  }
+  .cta-band__panel {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 40px;
+    align-items: center;
+    padding: clamp(32px, 6vw, 80px);
+    border-radius: var(--r-xl);
+    background: var(--sun);
+    overflow: hidden;
+  }
+  .cta-band__panel::before {
+    content: '';
+    position: absolute;
+    width: 520px;
+    height: 520px;
+    right: -140px;
+    top: -200px;
+    border-radius: 50%;
+    background: rgb(255 255 255 / 0.28);
+  }
+  .cta-band__text {
+    position: relative;
+    display: grid;
+    gap: 20px;
+    justify-items: start;
+  }
+  .cta-band__text .eyebrow {
+    color: var(--ink);
+  }
+  .cta-band__lead {
+    font-size: var(--fs-lg);
+    max-width: 48ch;
+  }
+  .cta-band .btn--ghost {
+    --btn-bd: var(--ink);
+  }
+  .cta-band__photos {
+    position: relative;
+    height: 100%;
+    min-height: 300px;
+  }
+  :global(.cta-band__p1) {
+    position: absolute;
+    width: 58%;
+    right: 6%;
+    top: 0;
+    transform: rotate(4deg);
+    box-shadow: var(--shadow);
+    border: 6px solid var(--cream);
+  }
+  :global(.cta-band__p2) {
+    position: absolute;
+    width: 46%;
+    left: 0;
+    bottom: 0;
+    transform: rotate(-6deg);
+    box-shadow: var(--shadow);
+    border: 6px solid var(--cream);
+  }
+  .cta-band :global(.cta-band__spark) {
+    position: absolute;
+    width: 46px;
+    height: 46px;
+    left: 18%;
+    top: 4%;
+    color: var(--ink);
+  }
+  @media (max-width: 860px) {
+    .cta-band__panel {
+      grid-template-columns: 1fr;
+    }
+    .cta-band__photos {
+      min-height: 260px;
+      max-width: 420px;
+    }
+  }
+</style>

@@ -1,0 +1,110 @@
+---
+import Photo from './Photo.astro';
+import { href, useT, type Lang, type PageKey } from '../i18n';
+
+interface Props {
+  lang: Lang;
+  page: PageKey;
+  eyebrow: string;
+  title: string;
+  lead: string;
+  photo?: { name: string; alt: string };
+  /** portrait → arch photo beside the text · wide → landscape photo below */
+  layout?: 'portrait' | 'wide';
+}
+const { lang, page, eyebrow, title, lead, photo, layout = 'portrait' } = Astro.props;
+const t = useT(lang);
+---
+
+<section class:list={['page-hero', `page-hero--${layout}`, { 'page-hero--photo': photo }]}>
+  <div class="container page-hero__grid">
+    <div class="page-hero__text">
+      <nav class="breadcrumbs" aria-label={t.common.breadcrumb}>
+        <ol>
+          <li><a href={href(lang, 'home')}>{t.nav.home}</a></li>
+          <li><span aria-current="page">{t.nav[page]}</span></li>
+        </ol>
+      </nav>
+      <p class="eyebrow">{eyebrow}</p>
+      <h1 class="h1">{title}</h1>
+      <p class="lead">{lead}</p>
+      {Astro.slots.has('default') && <div class="page-hero__actions"><slot /></div>}
+    </div>
+    {
+      photo && (
+        <div class="page-hero__visual">
+          <span class="page-hero__frame" aria-hidden="true" />
+          <Photo
+            name={photo.name}
+            alt={photo.alt}
+            priority
+            class:list={['page-hero__photo', layout === 'portrait' ? 'media--arch' : 'media--round']}
+            ratio={layout === 'portrait' ? '4 / 5' : '21 / 9'}
+            sizes={layout === 'portrait' ? '(min-width: 960px) 40vw, 92vw' : '(min-width: 1320px) 1224px, 92vw'}
+          />
+        </div>
+      )
+    }
+  </div>
+</section>
+
+<style>
+  .page-hero {
+    padding-top: calc(var(--header-h) + clamp(32px, 6vw, 80px));
+    padding-bottom: clamp(48px, 7vw, 96px);
+    overflow: clip;
+  }
+  .page-hero__grid {
+    display: grid;
+    gap: clamp(36px, 5vw, 72px);
+    align-items: center;
+  }
+  .page-hero--portrait.page-hero--photo .page-hero__grid {
+    grid-template-columns: 1.15fr 0.85fr;
+  }
+  .page-hero__text {
+    display: grid;
+    gap: 22px;
+    justify-items: start;
+    max-width: 780px;
+  }
+  .page-hero__text .breadcrumbs {
+    margin-bottom: 6px;
+  }
+  .page-hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 8px;
+  }
+  .page-hero__visual {
+    position: relative;
+  }
+  .page-hero__frame {
+    position: absolute;
+    inset: 3% -4% -3% 5%;
+    border-radius: var(--arch);
+    background: var(--sun);
+    transform: rotate(3deg);
+  }
+  .page-hero--wide .page-hero__frame {
+    border-radius: var(--r-xl);
+    inset: 10% -1.5% -4% 3%;
+    transform: rotate(-1deg);
+    background: var(--sky);
+  }
+  :global(.page-hero__photo) {
+    position: relative;
+    box-shadow: var(--shadow);
+  }
+  @media (max-width: 960px) {
+    .page-hero--portrait.page-hero--photo .page-hero__grid {
+      grid-template-columns: 1fr;
+    }
+    .page-hero--portrait .page-hero__visual {
+      max-width: 440px;
+      width: 86%;
+      justify-self: center;
+    }
+  }
+</style>

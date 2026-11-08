@@ -1,0 +1,299 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import SectionHead from '../components/SectionHead.astro';
+import ServiceCard from '../components/ServiceCard.astro';
+import Icon from '../components/Icon.astro';
+import CtaBand from '../components/CtaBand.astro';
+import { href, useT, type Lang } from '../i18n';
+import { services } from '../config/services';
+import { site, whatsappUrl } from '../config/site';
+import { photoSlots } from '../config/photos';
+import { formatPrice } from '../lib/format';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = useT(lang);
+const sv = t.services;
+const includedIcons = ['message', 'heart', 'sparkle'] as const;
+---
+
+<Base lang={lang} page="services" preload={{ name: 'services-hero', sizes: '(min-width: 960px) 40vw, 92vw' }}>
+  <PageHero
+    lang={lang}
+    page="services"
+    eyebrow={sv.eyebrow}
+    title={sv.title}
+    lead={sv.lead}
+    photo={{ name: 'services-hero', alt: photoSlots['services-hero'].alt[lang] }}
+  >
+    <a class="btn btn--sun" href={href(lang, 'booking')}>{t.common.bookNow}<Icon name="arrow" class="icon--arrow" /></a>
+    <a class="btn btn--ghost" href="#price-list">{sv.listTitle}</a>
+  </PageHero>
+
+  <section class="section section--sand" aria-labelledby="svc-list-title">
+    <div class="container">
+      <h2 id="svc-list-title" class="visually-hidden">{sv.title}</h2>
+      {
+        site.pricesIndicative && (
+          <p class="svc-note" data-reveal>
+            <Icon name="sparkle" filled />
+            {t.common.indicativeNote}
+          </p>
+        )
+      }
+      <div class="svc-cards">
+        {services.map((s, i) => <ServiceCard lang={lang} service={s} long index={i % 4} />)}
+        <article class="svc-ask on-accent" data-reveal style="--d:3">
+          <span class="svc-ask__icon"><Icon name="message" /></span>
+          <h3 class="svc-ask__title">{sv.notSureTitle}</h3>
+          <p>{sv.notSureText}</p>
+          <a class="btn btn--wa" href={whatsappUrl()} target="_blank" rel="noopener noreferrer">
+            <Icon name="whatsapp" />
+            {t.common.writeWhatsapp}
+            <span class="visually-hidden">{t.common.newTab}</span>
+          </a>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="price-list" aria-labelledby="price-title">
+    <div class="container price-grid">
+      <div>
+        <SectionHead eyebrow={sv.eyebrow} title={sv.listTitle} id="price-title" />
+        <div class="price-table-wrap" data-reveal>
+          <table class="price-table">
+            <caption class="visually-hidden">{sv.listTitle}</caption>
+            <thead>
+              <tr>
+                <th scope="col">{sv.tableService}</th>
+                <th scope="col">{sv.tableAge}</th>
+                <th scope="col">{sv.tablePrice}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {
+                services.map((s) => (
+                  <tr>
+                    <th scope="row">
+                      <a href={`#${s.id}`}>{s.name[lang]}</a>
+                    </th>
+                    <td>{s.age[lang]}</td>
+                    <td class="price-table__price">{formatPrice(s.price, lang, site.pricesIndicative)}</td>
+                  </tr>
+                ))
+              }
+            </tbody>
+          </table>
+        </div>
+        {site.pricesIndicative && <p class="price-foot">{t.common.indicativeNote}</p>}
+      </div>
+
+      <aside class="included" aria-labelledby="included-title" data-reveal>
+        <h2 id="included-title" class="h3">{sv.includedTitle}</h2>
+        <ul role="list" class="included__list">
+          {
+            sv.included.map((it, i) => (
+              <li>
+                <span class="included__icon">
+                  <Icon name={includedIcons[i]} />
+                </span>
+                <div>
+                  <h3 class="included__title">{it.title}</h3>
+                  <p>{it.text}</p>
+                </div>
+              </li>
+            ))
+          }
+        </ul>
+        <a class="btn" href={href(lang, 'booking')}>{t.common.bookNow}<Icon name="arrow" class="icon--arrow" /></a>
+      </aside>
+    </div>
+  </section>
+
+  <CtaBand lang={lang} />
+</Base>
+
+<style>
+  .svc-note {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: fit-content;
+    margin-bottom: 32px;
+    padding: 12px 20px;
+    border-radius: 999px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    font-size: var(--fs-sm);
+    font-weight: 600;
+  }
+  .svc-note :global(.icon) {
+    width: 18px;
+    height: 18px;
+    color: var(--sky-deep);
+  }
+  .svc-cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+  }
+  .svc-ask {
+    display: grid;
+    gap: 14px;
+    align-content: center;
+    justify-items: start;
+    padding: 32px 28px;
+    border-radius: var(--r-lg);
+    background: var(--sky);
+  }
+  .svc-ask__icon {
+    width: 56px;
+    height: 56px;
+    display: grid;
+    place-items: center;
+    border-radius: 18px;
+    background: var(--cream);
+  }
+  .svc-ask__title {
+    font-size: var(--fs-h4);
+  }
+  @media (max-width: 1240px) {
+    .svc-cards {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  @media (max-width: 1040px) {
+    .svc-cards {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (max-width: 640px) {
+    .svc-cards {
+      grid-template-columns: 1fr;
+    }
+    .svc-note {
+      border-radius: var(--r);
+    }
+  }
+  .price-grid {
+    display: grid;
+    grid-template-columns: 1.25fr 0.75fr;
+    gap: clamp(40px, 6vw, 96px);
+    align-items: start;
+  }
+  .price-table-wrap {
+    border-radius: var(--r-lg);
+    border: 1px solid var(--line);
+    background: var(--paper);
+    overflow: hidden;
+  }
+  .price-table th,
+  .price-table td {
+    padding: 18px 22px;
+    text-align: left;
+    border-bottom: 1px solid var(--line);
+  }
+  .price-table thead th {
+    font-size: var(--fs-xs);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    background: var(--cream-2);
+  }
+  :lang(ka) .price-table thead th {
+    text-transform: none;
+    letter-spacing: 0.02em;
+  }
+  .price-table tbody tr:last-child > * {
+    border-bottom: 0;
+  }
+  .price-table tbody th {
+    font-weight: 650;
+  }
+  .price-table tbody th a {
+    text-decoration: none;
+  }
+  .price-table tbody th a:hover {
+    text-decoration: underline;
+  }
+  .price-table td {
+    color: var(--ink-2);
+  }
+  .price-table__price {
+    font-family: var(--f-display);
+    font-size: 1.25rem;
+    font-weight: 650;
+    color: var(--text) !important;
+    white-space: nowrap;
+    text-align: right !important;
+  }
+  .price-table thead th:last-child {
+    text-align: right;
+  }
+  .price-table tbody tr {
+    transition: background-color 0.25s var(--ease);
+  }
+  .price-table tbody tr:hover {
+    background: var(--sun-soft);
+  }
+  .price-foot {
+    margin-top: 16px;
+    font-size: var(--fs-sm);
+    color: var(--ink-2);
+  }
+  .included {
+    position: sticky;
+    top: calc(var(--header-h) + 24px);
+    display: grid;
+    gap: 24px;
+    padding: clamp(28px, 4vw, 44px);
+    border-radius: var(--r-xl);
+    background: var(--sky-soft);
+  }
+  .included__list {
+    display: grid;
+    gap: 20px;
+  }
+  .included__list li {
+    display: grid;
+    grid-template-columns: 48px 1fr;
+    gap: 16px;
+  }
+  .included__icon {
+    width: 48px;
+    height: 48px;
+    display: grid;
+    place-items: center;
+    border-radius: 16px;
+    background: var(--paper);
+  }
+  .included__title {
+    font-size: 1.0625rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .included p {
+    color: var(--ink-2);
+    font-size: var(--fs-sm);
+  }
+  @media (max-width: 960px) {
+    .price-grid {
+      grid-template-columns: 1fr;
+    }
+    .included {
+      position: static;
+    }
+  }
+  @media (max-width: 520px) {
+    .price-table th,
+    .price-table td {
+      padding: 14px 12px;
+      font-size: var(--fs-sm);
+    }
+  }
+</style>

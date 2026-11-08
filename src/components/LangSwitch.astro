@@ -1,0 +1,101 @@
+---
+import { href, useT, type Lang, type PageKey } from '../i18n';
+
+interface Props {
+  lang: Lang;
+  page: PageKey | null;
+  dark?: boolean;
+}
+const { lang, page, dark = false } = Astro.props;
+const t = useT(lang);
+const target = page ?? 'home';
+const options = [
+  { code: 'ka' as const, short: 'GEO', name: 'ქართული' },
+  { code: 'en' as const, short: 'ENG', name: 'English' },
+];
+---
+
+<div class:list={['lang', { 'lang--dark': dark }]} role="group" aria-label={t.nav.langLabel} data-lang={lang}>
+  {
+    options.map((o) => (
+      <a
+        href={href(o.code, target)}
+        hreflang={o.code}
+        lang={o.code}
+        aria-current={o.code === lang ? 'true' : undefined}
+        data-lang-link
+      >
+        {o.short}
+        <span class="visually-hidden"> — {o.name}</span>
+      </a>
+    ))
+  }
+  <span class="lang__pill" aria-hidden="true"></span>
+</div>
+
+<style>
+  .lang {
+    position: relative;
+    flex: none;
+    display: inline-grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    padding: 4px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--text) 6%, transparent);
+    border: 1px solid var(--line);
+    isolation: isolate;
+  }
+  .lang a {
+    position: relative;
+    z-index: 1;
+    min-width: 50px;
+    min-height: 36px;
+    display: grid;
+    place-items: center;
+    padding: 0 10px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 750;
+    letter-spacing: 0.08em;
+    text-decoration: none;
+    color: var(--ink-2);
+    transition: color 0.3s var(--ease);
+  }
+  .lang a[aria-current] {
+    color: var(--bg);
+  }
+  .lang a:not([aria-current]):hover {
+    color: var(--text);
+  }
+  .lang__pill {
+    position: absolute;
+    z-index: 0;
+    top: 4px;
+    bottom: 4px;
+    left: 4px;
+    width: calc(50% - 4px);
+    border-radius: 999px;
+    background: var(--text);
+    transition: transform 0.45s var(--ease);
+  }
+  .lang[data-lang='en'] .lang__pill {
+    transform: translateX(100%);
+  }
+  .lang--dark {
+    background: rgb(255 248 236 / 0.08);
+    border-color: rgb(255 248 236 / 0.18);
+  }
+  .lang--dark a {
+    color: rgb(255 248 236 / 0.8);
+  }
+  .lang--dark a[aria-current] {
+    color: var(--ink) !important;
+  }
+  .lang--dark a:not([aria-current]):hover {
+    color: var(--cream);
+  }
+  .lang--dark .lang__pill {
+    background: var(--sun);
+  }
+</style>

@@ -1,0 +1,74 @@
+---
+/** Light / dark theme switch. State lives on <html data-theme>; see src/scripts/theme.ts. */
+import Icon from './Icon.astro';
+import { useT, type Lang } from '../i18n';
+
+interface Props {
+  lang: Lang;
+  /** styling for the navy menu */
+  dark?: boolean;
+  class?: string;
+}
+const { lang, dark = false, class: cls } = Astro.props;
+const t = useT(lang);
+---
+
+<button type="button" class:list={['theme-toggle', { 'theme-toggle--dark': dark }, cls]} aria-pressed="false" data-theme-toggle>
+  <Icon name="moon" class="theme-toggle__moon" />
+  <Icon name="sun" class="theme-toggle__sun" />
+  <span class="visually-hidden">{t.nav.themeDark}</span>
+</button>
+
+<style>
+  .theme-toggle {
+    position: relative;
+    flex: none;
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    border: 1px solid var(--line-strong);
+    background: var(--paper);
+    color: var(--text);
+    overflow: hidden;
+    transition:
+      background-color 0.3s var(--ease),
+      transform 0.3s var(--ease);
+  }
+  .theme-toggle:hover {
+    background: var(--sun-soft);
+  }
+  .theme-toggle:active {
+    transform: scale(0.92);
+  }
+  .theme-toggle :global(.icon) {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    transition:
+      transform 0.5s var(--ease),
+      opacity 0.3s var(--ease);
+  }
+  /* light theme shows the moon ("switch to dark"), dark theme shows the sun */
+  .theme-toggle :global(.theme-toggle__sun) {
+    opacity: 0;
+    transform: rotate(-90deg) scale(0.5);
+  }
+  :global(:root[data-theme='dark']) .theme-toggle :global(.theme-toggle__sun) {
+    opacity: 1;
+    transform: none;
+  }
+  :global(:root[data-theme='dark']) .theme-toggle :global(.theme-toggle__moon) {
+    opacity: 0;
+    transform: rotate(90deg) scale(0.5);
+  }
+  .theme-toggle--dark {
+    border-color: rgb(255 248 236 / 0.24);
+    background: rgb(255 248 236 / 0.06);
+    color: var(--cream);
+  }
+  .theme-toggle--dark:hover {
+    background: rgb(255 248 236 / 0.14);
+  }
+</style>

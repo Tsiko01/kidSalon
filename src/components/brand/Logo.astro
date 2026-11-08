@@ -1,0 +1,69 @@
+---
+/**
+ * Stacked "KIDS / SALON" sticker wordmark — a refined take on the salon's
+ * hand-drawn sign: tilted letters, white fill, navy outline and offset shadow.
+ * Glyphs are referenced from <LogoDefs> (rendered once per page in Base).
+ */
+import { logo } from './paths';
+
+interface Props {
+  /** sticker: white letters with outline + shadow · ink: solid navy · light: solid cream */
+  variant?: 'sticker' | 'ink' | 'light';
+  class?: string;
+  title?: string;
+}
+const { variant = 'sticker', class: cls = '', title } = Astro.props;
+const t = (g: (typeof logo.glyphs)[number], off = 0) =>
+  `translate(${g.dx + off} ${g.dy + off}) rotate(${g.rot} ${g.cx - g.dx} ${g.cy})`;
+---
+
+<svg
+  class:list={['logo', `logo--${variant}`, cls]}
+  viewBox={logo.viewBox}
+  role={title ? 'img' : undefined}
+  aria-label={title}
+  aria-hidden={title ? undefined : 'true'}
+  focusable="false"
+>
+  {
+    variant === 'sticker' && (
+      <g class="logo__shadow">
+        {logo.glyphs.map((g, i) => (
+          <use href={`#ks-g${i}`} transform={t(g, 6)} />
+        ))}
+      </g>
+    )
+  }
+  <g class="logo__face">
+    {logo.glyphs.map((g, i) => (
+      <use href={`#ks-g${i}`} transform={t(g)} style={`--i:${i}`} />
+    ))}
+  </g>
+</svg>
+
+<style>
+  .logo {
+    overflow: visible;
+    height: auto;
+  }
+  .logo use {
+    stroke-linejoin: round;
+    paint-order: stroke;
+  }
+  .logo--sticker .logo__shadow use {
+    fill: var(--logo-shadow, var(--ink));
+    stroke: var(--logo-shadow, var(--ink));
+    stroke-width: 10;
+  }
+  .logo--sticker .logo__face use {
+    fill: var(--logo-fill, #fff);
+    stroke: var(--logo-outline, var(--ink));
+    stroke-width: 10;
+  }
+  .logo--ink .logo__face use {
+    fill: var(--ink);
+  }
+  .logo--light .logo__face use {
+    fill: var(--cream);
+  }
+</style>

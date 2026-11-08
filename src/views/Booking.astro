@@ -1,0 +1,468 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Photo from '../components/Photo.astro';
+import Icon from '../components/Icon.astro';
+import { useT, type Lang } from '../i18n';
+import { services } from '../config/services';
+import { site, telUrl, whatsappUrl } from '../config/site';
+import { photoSlots } from '../config/photos';
+import { formatPrice, formatHours, fullAddress } from '../lib/format';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = useT(lang);
+const b = t.booking;
+const f = b.fields;
+const strings = JSON.stringify({ lang, errors: b.errors, message: b.message });
+const address = fullAddress(lang);
+---
+
+<Base lang={lang} page="booking">
+  <PageHero lang={lang} page="booking" eyebrow={b.eyebrow} title={b.title} lead={b.lead} />
+
+  <section class="section bk" aria-labelledby="bk-form-title">
+    <div class="container bk__grid">
+      <div class="bk__main">
+        <form class="bk-form" data-booking data-wa={site.whatsapp} data-strings={strings} novalidate>
+          <div class="bk-form__head">
+            <h2 id="bk-form-title" class="h3">{b.formTitle}</h2>
+            <p class="bk-form__hint">{b.requiredHint}</p>
+          </div>
+          <p class="bk-form__summary" role="alert" data-form-summary hidden></p>
+
+          <fieldset>
+            <legend><span>1</span>{b.groupFamily}</legend>
+            <div class="bk-form__row">
+              <div class="field">
+                <label for="bk-parent">{f.parent} <span class="req" aria-hidden="true">*</span></label>
+                <input id="bk-parent" name="parent" type="text" autocomplete="name" required maxlength="60" placeholder={f.parentPh} aria-describedby="bk-parent-error" />
+                <p class="field__error" id="bk-parent-error" aria-live="polite"></p>
+              </div>
+              <div class="field">
+                <label for="bk-phone">{f.phone} <span class="req" aria-hidden="true">*</span></label>
+                <input id="bk-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" required maxlength="20" placeholder={f.phonePh} aria-describedby="bk-phone-error" />
+                <p class="field__error" id="bk-phone-error" aria-live="polite"></p>
+              </div>
+              <div class="field">
+                <label for="bk-child">{f.child} <span class="req" aria-hidden="true">*</span></label>
+                <input id="bk-child" name="child" type="text" autocomplete="off" required maxlength="60" placeholder={f.childPh} aria-describedby="bk-child-error" />
+                <p class="field__error" id="bk-child-error" aria-live="polite"></p>
+              </div>
+              <div class="field">
+                <label for="bk-age">{f.age} <span class="opt">({f.optional})</span></label>
+                <input id="bk-age" name="age" type="text" autocomplete="off" maxlength="20" placeholder={f.agePh} aria-describedby="bk-age-error" />
+                <p class="field__error" id="bk-age-error" aria-live="polite"></p>
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend><span>2</span>{b.groupVisit}</legend>
+            <div class="bk-form__row">
+              <div class="field field--full">
+                <label for="bk-service">{f.service} <span class="req" aria-hidden="true">*</span></label>
+                <div class="select">
+                  <select id="bk-service" name="service" required aria-describedby="bk-service-error">
+                    <option value="">{f.servicePh}</option>
+                    {
+                      services.map((s) => (
+                        <option value={s.id} data-name={s.name[lang]}>
+                          {s.name[lang]} · {formatPrice(s.price, lang, site.pricesIndicative)}
+                        </option>
+                      ))
+                    }
+                  </select>
+                  <Icon name="chevron-down" />
+                </div>
+                <p class="field__error" id="bk-service-error" aria-live="polite"></p>
+              </div>
+              <div class="field">
+                <label for="bk-date">{f.date} <span class="req" aria-hidden="true">*</span></label>
+                <input id="bk-date" name="date" type="date" required aria-describedby="bk-date-error" />
+                <p class="field__error" id="bk-date-error" aria-live="polite"></p>
+              </div>
+              <div class="field">
+                <label for="bk-time">{f.time} <span class="req" aria-hidden="true">*</span></label>
+                <input id="bk-time" name="time" type="time" step="900" required aria-describedby="bk-time-error" />
+                <p class="field__error" id="bk-time-error" aria-live="polite"></p>
+              </div>
+              <div class="field field--full">
+                <label for="bk-message">{f.message} <span class="opt">({f.optional})</span></label>
+                <textarea id="bk-message" name="message" rows="4" maxlength="600" placeholder={f.messagePh} aria-describedby="bk-message-error"></textarea>
+                <p class="field__error" id="bk-message-error" aria-live="polite"></p>
+              </div>
+            </div>
+          </fieldset>
+
+          <div class="bk-form__submit">
+            <button class="btn btn--wa bk-form__btn" type="submit">
+              <Icon name="whatsapp" />
+              {b.submit}
+            </button>
+            <p class="bk-form__disclaimer">
+              <Icon name="shield" />
+              {b.disclaimer}
+            </p>
+          </div>
+        </form>
+
+        <div class="bk-success" data-booking-success hidden>
+          <span class="bk-success__status"><span class="bk-success__dot" aria-hidden="true"></span>{b.success.status}</span>
+          <span class="bk-success__icon" aria-hidden="true"><Icon name="message" /></span>
+          <h2 class="h3" tabindex="-1" data-success-title>{b.success.title}</h2>
+          <p>{b.success.text}</p>
+          <p class="bk-success__fallback">{b.success.fallback}</p>
+          <div class="btn-row">
+            <a class="btn btn--wa" href={whatsappUrl()} data-wa-link target="_blank" rel="noopener noreferrer">
+              <Icon name="whatsapp" />
+              {b.success.open}
+              <span class="visually-hidden">{t.common.newTab}</span>
+            </a>
+            <button type="button" class="btn btn--ghost" data-booking-again>{b.success.again}</button>
+          </div>
+        </div>
+      </div>
+
+      <aside class="bk__side" aria-label={b.side.nextTitle}>
+        <Photo name="booking-side" alt={photoSlots['booking-side'].alt[lang]} class="media--arch bk__photo" ratio="4 / 4.6" sizes="(min-width: 960px) 380px, 80vw" />
+        <div class="bk-card">
+          <h2 class="bk-card__title">{b.side.nextTitle}</h2>
+          <ol role="list" class="bk-steps">
+            {b.side.next.map((s, i) => (
+              <li><span>{i + 1}</span>{s}</li>
+            ))}
+          </ol>
+        </div>
+        <div class="bk-card bk-card--sun">
+          <h2 class="bk-card__title">{b.side.callTitle}</h2>
+          <p>{b.side.callText}</p>
+          <a class="btn" href={telUrl}><Icon name="phone" />{site.phoneDisplay}</a>
+        </div>
+        <dl class="bk-info">
+          <div>
+            <dt><Icon name="map-pin" />{t.common.address}</dt>
+            <dd>{address ?? t.common.addressUnknown}</dd>
+          </div>
+          <div>
+            <dt><Icon name="clock" />{t.common.hours}</dt>
+            <dd>{site.hours ? formatHours(site.hours, lang) : t.common.hoursUnknown}</dd>
+          </div>
+        </dl>
+      </aside>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .bk {
+    padding-top: 0;
+    padding-bottom: calc(var(--section) + var(--r-xl));
+  }
+  .bk__grid {
+    display: grid;
+    grid-template-columns: 1.55fr 0.85fr;
+    gap: clamp(32px, 5vw, 72px);
+    align-items: start;
+  }
+  .bk-form,
+  .bk-success {
+    padding: clamp(24px, 4vw, 48px);
+    border-radius: var(--r-xl);
+    background: var(--paper);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow-sm);
+  }
+  .bk-form {
+    display: grid;
+    gap: 32px;
+  }
+  .bk-form__head {
+    display: grid;
+    gap: 8px;
+  }
+  .bk-form__hint {
+    color: var(--ink-2);
+    font-size: var(--fs-sm);
+  }
+  .bk-form__summary {
+    padding: 14px 18px;
+    border-radius: var(--r-sm);
+    background: color-mix(in srgb, var(--danger) 14%, var(--paper));
+    color: var(--danger);
+    font-weight: 650;
+  }
+  fieldset {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    min-width: 0;
+  }
+  legend {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0;
+    margin-bottom: 18px;
+    font-weight: 700;
+    font-size: 1.0625rem;
+  }
+  legend span {
+    width: 30px;
+    height: 30px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--sun);
+    color: var(--ink);
+    font-size: var(--fs-sm);
+  }
+  .bk-form__row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 18px;
+  }
+  .field {
+    display: grid;
+    gap: 8px;
+    align-content: start;
+  }
+  .field--full {
+    grid-column: 1 / -1;
+  }
+  .field label {
+    font-size: var(--fs-sm);
+    font-weight: 650;
+  }
+  .req {
+    color: var(--danger);
+  }
+  .opt {
+    font-weight: 500;
+    color: var(--ink-2);
+  }
+  .field input,
+  .field select,
+  .field textarea {
+    width: 100%;
+    min-height: 54px;
+    padding: 14px 18px;
+    border-radius: 16px;
+    border: 1.5px solid var(--line-strong);
+    background: var(--bg);
+    font-size: 1rem;
+    line-height: 1.4;
+    transition:
+      border-color 0.25s var(--ease),
+      box-shadow 0.25s var(--ease),
+      background-color 0.25s var(--ease);
+    appearance: none;
+  }
+  .field textarea {
+    resize: vertical;
+    min-height: 120px;
+  }
+  .field input::placeholder,
+  .field textarea::placeholder {
+    color: var(--ink-3);
+  }
+  .field input:hover,
+  .field select:hover,
+  .field textarea:hover {
+    border-color: var(--ink-3);
+  }
+  .field input:focus,
+  .field select:focus,
+  .field textarea:focus {
+    outline: none;
+    border-color: var(--sky-deep);
+    background: var(--paper);
+    box-shadow: 0 0 0 4px rgb(74 174 242 / 0.25);
+  }
+  .field.is-invalid input,
+  .field.is-invalid select,
+  .field.is-invalid textarea {
+    border-color: var(--danger);
+    background: color-mix(in srgb, var(--danger) 7%, var(--bg));
+  }
+  .field__error {
+    min-height: 1.4em;
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    color: var(--danger);
+  }
+  .select {
+    position: relative;
+  }
+  .select select {
+    padding-right: 48px;
+    cursor: pointer;
+  }
+  .select :global(.icon) {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    width: 20px;
+    height: 20px;
+    transform: translateY(-50%);
+    pointer-events: none;
+  }
+  .bk-form__submit {
+    display: grid;
+    gap: 16px;
+    padding-top: 8px;
+    border-top: 1px dashed var(--line-strong);
+    padding-top: 28px;
+  }
+  .bk-form__btn {
+    min-height: 60px;
+    font-size: 1rem;
+  }
+  .bk-form__disclaimer {
+    display: flex;
+    gap: 10px;
+    font-size: var(--fs-sm);
+    color: var(--ink-2);
+  }
+  .bk-form__disclaimer :global(.icon) {
+    width: 20px;
+    height: 20px;
+    margin-top: 2px;
+    color: var(--success);
+  }
+
+  .bk-success {
+    display: grid;
+    gap: 16px;
+    justify-items: start;
+    background: linear-gradient(160deg, var(--sky-soft), var(--paper) 60%);
+  }
+  .bk-success[hidden] {
+    display: none;
+  }
+  .bk-success__status {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: var(--sun-soft);
+    font-size: var(--fs-sm);
+    font-weight: 700;
+  }
+  .bk-success__dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #e0a100;
+    animation: blink 1.4s ease-in-out infinite;
+  }
+  @keyframes blink {
+    50% {
+      opacity: 0.3;
+    }
+  }
+  .bk-success__icon {
+    width: 64px;
+    height: 64px;
+    display: grid;
+    place-items: center;
+    border-radius: 22px;
+    background: #1f9d55;
+    color: #fff;
+  }
+  .bk-success h2:focus {
+    outline: none;
+  }
+  .bk-success__fallback {
+    color: var(--ink-2);
+    font-size: var(--fs-sm);
+  }
+
+  .bk__side {
+    display: grid;
+    gap: 18px;
+    position: sticky;
+    top: calc(var(--header-h) + 20px);
+  }
+  :global(.bk__photo) {
+    box-shadow: var(--shadow);
+  }
+  .bk-card {
+    display: grid;
+    gap: 12px;
+    justify-items: start;
+    padding: 26px;
+    border-radius: var(--r-lg);
+    background: var(--sky-soft);
+  }
+  .bk-card--sun {
+    background: var(--sun-soft);
+  }
+  .bk-card__title {
+    font-family: var(--f-body);
+    font-size: 1.0625rem;
+    font-weight: 700;
+    letter-spacing: 0;
+  }
+  .bk-steps {
+    display: grid;
+    gap: 12px;
+  }
+  .bk-steps li {
+    display: grid;
+    grid-template-columns: 28px 1fr;
+    gap: 12px;
+    font-size: var(--fs-sm);
+  }
+  .bk-steps span {
+    width: 28px;
+    height: 28px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--paper);
+    font-weight: 700;
+    font-size: var(--fs-xs);
+  }
+  .bk-info {
+    display: grid;
+    gap: 14px;
+    margin: 0;
+    padding: 4px 6px;
+  }
+  .bk-info dt {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: var(--fs-xs);
+    font-weight: 700;
+    color: var(--ink-2);
+  }
+  .bk-info dt :global(.icon) {
+    width: 16px;
+    height: 16px;
+  }
+  .bk-info dd {
+    margin: 4px 0 0 24px;
+    font-size: var(--fs-sm);
+  }
+  @media (max-width: 960px) {
+    .bk__grid {
+      grid-template-columns: 1fr;
+    }
+    .bk__side {
+      position: static;
+    }
+    :global(.bk__photo) {
+      display: none;
+    }
+  }
+  @media (max-width: 560px) {
+    .bk-form__row {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

@@ -1,0 +1,276 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Photo from '../components/Photo.astro';
+import Icon from '../components/Icon.astro';
+import Logo from '../components/brand/Logo.astro';
+import CtaBand from '../components/CtaBand.astro';
+import { href, useT, type Lang } from '../i18n';
+import { photoSlots } from '../config/photos';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = useT(lang);
+const a = t.about;
+const pillarIcons = ['smile', 'heart', 'scissors'] as const;
+const alt = (k: keyof typeof photoSlots) => photoSlots[k].alt[lang];
+---
+
+<Base lang={lang} page="about" pageType="AboutPage" preload={{ name: 'about-hero', sizes: '(min-width: 1320px) 1224px, 92vw' }}>
+  <PageHero lang={lang} page="about" eyebrow={a.eyebrow} title={a.title} lead={a.lead} layout="wide" photo={{ name: 'about-hero', alt: alt('about-hero') }} />
+
+  <!-- story -->
+  <section class="section story" aria-labelledby="story-title">
+    <div class="container story__grid">
+      <div class="story__photo" data-reveal>
+        <Photo name="about-1" alt={alt('about-1')} class="media--arch" ratio="4 / 5" sizes="(min-width: 960px) 36vw, 80vw" />
+        <span class="story__sticker" aria-hidden="true"><Logo variant="sticker" /></span>
+      </div>
+      <div class="story__text">
+        <p class="eyebrow" data-reveal>{a.storyEyebrow}</p>
+        <h2 id="story-title" class="h2" data-reveal>{a.storyTitle}</h2>
+        {a.story.map((para, i) => <p class:list={['story__p', { lead: i === 0 }]} data-reveal>{para}</p>)}
+        <blockquote class="story__quote" data-reveal>
+          <p>{t.home.intro.quote}</p>
+          <footer>— {t.home.intro.quoteCite}</footer>
+        </blockquote>
+      </div>
+    </div>
+  </section>
+
+  <!-- philosophy -->
+  <section class="section section--sand" aria-labelledby="pillars-title">
+    <div class="container">
+      <div class="section-head section-head--center" data-reveal>
+        <div class="section-head__text">
+          <p class="eyebrow">{a.pillarsEyebrow}</p>
+          <h2 id="pillars-title" class="h2">{a.pillarsTitle}</h2>
+        </div>
+      </div>
+      <ol role="list" class="pillars">
+        {
+          a.pillars.map((p, i) => (
+            <li class="pillar" data-reveal style={`--d:${i}`}>
+              <span class="pillar__num" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+              <span class="pillar__icon"><Icon name={pillarIcons[i]} /></span>
+              <h3 class="pillar__title">{p.title}</h3>
+              <p>{p.text}</p>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <!-- atmosphere -->
+  <section class="section atmo" aria-labelledby="atmo-title">
+    <div class="container atmo__grid">
+      <div class="atmo__text">
+        <p class="eyebrow" data-reveal>{a.atmosphereEyebrow}</p>
+        <h2 id="atmo-title" class="h2" data-reveal>{a.atmosphereTitle}</h2>
+        <p class="lead" data-reveal>{a.atmosphereText}</p>
+        <a class="link-arrow" href={href(lang, 'portfolio')} data-reveal>{t.common.seeWork}<Icon name="arrow" /></a>
+      </div>
+      <div class="atmo__collage">
+        <Photo name="intro-1" alt={alt('intro-1')} class="media--round atmo__a" ratio="4 / 5" sizes="(min-width: 960px) 26vw, 50vw" />
+        <Photo name="about-3" alt={alt('about-3')} class="media--arch atmo__b" ratio="3 / 4" sizes="(min-width: 960px) 20vw, 40vw" />
+        <Photo name="about-2" alt={alt('about-2')} class="media--round atmo__c" ratio="1 / 1" sizes="(min-width: 960px) 18vw, 36vw" />
+      </div>
+    </div>
+  </section>
+
+  <!-- promise -->
+  <section class="section section--ink on-dark promise" aria-labelledby="promise-title">
+    <div class="container promise__grid">
+      <div>
+        <p class="eyebrow" data-reveal>{a.promiseEyebrow}</p>
+        <h2 id="promise-title" class="h2" data-reveal>{a.promiseTitle}</h2>
+      </div>
+      <ul role="list" class="promise__list">
+        {
+          a.promises.map((p, i) => (
+            <li data-reveal style={`--d:${i}`}>
+              <span class="promise__check"><Icon name="check" /></span>
+              {p}
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <CtaBand lang={lang} />
+</Base>
+
+<style>
+  .story__grid {
+    display: grid;
+    grid-template-columns: 0.85fr 1.15fr;
+    gap: clamp(40px, 7vw, 120px);
+    align-items: center;
+  }
+  .story__photo {
+    position: relative;
+  }
+  .story__sticker {
+    position: absolute;
+    width: 38%;
+    right: -10%;
+    bottom: 8%;
+    transform: rotate(-8deg);
+    filter: drop-shadow(0 14px 22px rgb(23 32 66 / 0.25));
+  }
+  .story__text {
+    display: grid;
+    gap: 22px;
+  }
+  .story__p:not(.lead) {
+    color: var(--ink-2);
+  }
+  .story__quote {
+    margin: 12px 0 0;
+    padding: 24px 0 0 28px;
+    border-left: 4px solid var(--sun);
+  }
+  .story__quote p {
+    font-family: var(--f-display);
+    font-size: var(--fs-h4);
+    font-weight: 560;
+    line-height: 1.35;
+  }
+  .story__quote footer {
+    margin-top: 8px;
+    font-size: var(--fs-sm);
+    color: var(--ink-2);
+  }
+  .pillars {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 22px;
+  }
+  .pillar {
+    position: relative;
+    display: grid;
+    gap: 16px;
+    align-content: start;
+    padding: clamp(28px, 3vw, 40px);
+    border-radius: var(--r-xl);
+    background: var(--paper);
+    border: 1px solid var(--line);
+  }
+  .pillar__num {
+    position: absolute;
+    right: 28px;
+    top: 24px;
+    font-family: var(--f-display);
+    font-size: 3.5rem;
+    line-height: 1;
+    color: var(--cream-2);
+    font-weight: 700;
+  }
+  .pillar__icon {
+    width: 58px;
+    height: 58px;
+    display: grid;
+    place-items: center;
+    border-radius: 20px;
+    background: var(--sky-soft);
+  }
+  .pillar:nth-child(2) .pillar__icon {
+    background: var(--pink-soft);
+  }
+  .pillar:nth-child(3) .pillar__icon {
+    background: var(--sun-soft);
+  }
+  .pillar__title {
+    font-size: var(--fs-h4);
+  }
+  .pillar p {
+    color: var(--ink-2);
+  }
+  .atmo__grid {
+    display: grid;
+    grid-template-columns: 0.9fr 1.1fr;
+    gap: clamp(40px, 6vw, 96px);
+    align-items: center;
+  }
+  .atmo__text {
+    display: grid;
+    gap: 22px;
+    justify-items: start;
+  }
+  .atmo__collage {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 18px;
+    align-items: end;
+  }
+  :global(.atmo__a) {
+    grid-row: span 2;
+  }
+  :global(.atmo__b) {
+    transform: translateY(-24px);
+  }
+  :global(.atmo__c) {
+    width: 82%;
+  }
+  .promise {
+    border-radius: var(--r-xl);
+    margin-inline: clamp(0px, 1.5vw, 24px);
+  }
+  .promise__grid {
+    display: grid;
+    grid-template-columns: 0.9fr 1.1fr;
+    gap: clamp(32px, 6vw, 96px);
+    align-items: start;
+  }
+  .promise__grid > div {
+    display: grid;
+    gap: 18px;
+  }
+  .promise__list {
+    display: grid;
+    gap: 14px;
+  }
+  .promise__list li {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 20px 24px;
+    border-radius: var(--r);
+    background: rgb(255 248 236 / 0.06);
+    border: 1px solid rgb(255 248 236 / 0.12);
+    font-size: var(--fs-lg);
+  }
+  .promise__check {
+    flex: none;
+    width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--sun);
+    color: var(--ink);
+  }
+  .promise__check :global(.icon) {
+    width: 20px;
+    height: 20px;
+  }
+  @media (max-width: 960px) {
+    .story__grid,
+    .atmo__grid,
+    .promise__grid {
+      grid-template-columns: 1fr;
+    }
+    .story__photo {
+      max-width: 420px;
+      width: 86%;
+    }
+    .pillars {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

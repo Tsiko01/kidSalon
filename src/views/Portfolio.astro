@@ -1,0 +1,327 @@
+---
+import { getImage } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Photo from '../components/Photo.astro';
+import Icon from '../components/Icon.astro';
+import CtaBand from '../components/CtaBand.astro';
+import { fmt, href, useT, type Lang } from '../i18n';
+import { getPortfolio } from '../lib/photos';
+import { portfolioCaptions } from '../config/portfolio';
+import { site } from '../config/site';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = useT(lang);
+const p = t.portfolio;
+
+const items = await Promise.all(
+  getPortfolio().map(async (item, i) => {
+    const large = await getImage({ src: item.image, width: Math.min(item.image.width, 1600), format: 'webp', quality: 80 });
+    const caption = portfolioCaptions[item.id]?.[lang] ?? fmt(p.photoAlt, { n: i + 1 });
+    return { ...item, large: large.src, caption };
+  }),
+);
+
+const gallerySchema = {
+  '@context': 'https://schema.org',
+  '@type': 'ImageGallery',
+  name: p.title,
+  description: p.lead,
+  image: items.map((it) => ({
+    '@type': 'ImageObject',
+    contentUrl: new URL(it.large, site.url).href,
+    caption: it.caption,
+  })),
+};
+---
+
+<Base lang={lang} page="portfolio" pageType="CollectionPage" jsonLd={[gallerySchema]}>
+  <PageHero lang={lang} page="portfolio" eyebrow={p.eyebrow} title={p.title} lead={p.lead}>
+    <a class="btn btn--sun" href={href(lang, 'booking')}>{t.common.bookNow}<Icon name="arrow" class="icon--arrow" /></a>
+    <span class="chip chip--sky pf-count">{fmt(p.count, { n: items.length })}</span>
+  </PageHero>
+
+  <section class="section pf" aria-label={p.title}>
+    <div class="container">
+      <ul role="list" class="gallery" data-gallery>
+        {
+          items.map((it, i) => (
+            <li class="gallery__item" data-reveal style={`--d:${i % 3}`}>
+              <a href={it.large} class="gallery__link" data-lightbox data-caption={it.caption} aria-label={fmt(p.openPhoto, { alt: it.caption })}>
+                <Photo
+                  name={`portfolio/${it.id}`}
+                  alt={it.caption}
+                  class="media--zoom gallery__media"
+                  sizes="(min-width: 1100px) 400px, (min-width: 640px) 46vw, 92vw"
+                  priority={i < 2}
+                />
+                <span class="gallery__overlay" aria-hidden="true">
+                  <span class="gallery__cap">{it.caption}</span>
+                  <span class="gallery__zoom"><Icon name="expand" /></span>
+                </span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+
+      <div class="pf-more" data-reveal>
+        <span class="pf-more__icon"><Icon name="facebook" /></span>
+        <p>{p.moreText}</p>
+        <a class="btn" href={site.facebook} target="_blank" rel="noopener noreferrer">
+          {p.more}
+          <Icon name="arrow-up-right" />
+          <span class="visually-hidden">{t.common.newTab}</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <dialog class="lb on-dark" data-lightbox-dialog aria-label={p.lightbox.label}>
+    <div class="lb__bar">
+      <span class="lb__counter" data-lb-counter data-template={p.lightbox.counter} aria-live="polite"></span>
+      <button type="button" class="lb__btn" data-lb-close>
+        <Icon name="close" />
+        <span class="visually-hidden">{p.lightbox.close}</span>
+      </button>
+    </div>
+    <figure class="lb__figure">
+      <div class="lb__stage" data-lb-stage></div>
+      <figcaption class="lb__caption" data-lb-caption></figcaption>
+    </figure>
+    <button type="button" class="lb__btn lb__nav lb__nav--prev" data-lb-prev>
+      <Icon name="arrow-left" />
+      <span class="visually-hidden">{p.lightbox.prev}</span>
+    </button>
+    <button type="button" class="lb__btn lb__nav lb__nav--next" data-lb-next>
+      <Icon name="arrow" />
+      <span class="visually-hidden">{p.lightbox.next}</span>
+    </button>
+  </dialog>
+
+  <CtaBand lang={lang} />
+</Base>
+
+<style>
+  .pf {
+    padding-top: 0;
+  }
+  .pf-count {
+    align-self: center;
+  }
+  .gallery {
+    columns: 3 300px;
+    column-gap: 18px;
+  }
+  .gallery__item {
+    break-inside: avoid;
+    margin-bottom: 18px;
+  }
+  .gallery__link {
+    position: relative;
+    display: block;
+    border-radius: var(--r-lg);
+    overflow: hidden;
+    background: var(--sky-soft);
+  }
+  .gallery__overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 18px;
+    background: linear-gradient(to top, rgb(23 32 66 / 0.72), rgb(23 32 66 / 0) 55%);
+    color: var(--cream);
+    opacity: 0;
+    transition: opacity 0.45s var(--ease);
+  }
+  .gallery__cap {
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    line-height: 1.4;
+    transform: translateY(10px);
+    transition: transform 0.5s var(--ease);
+  }
+  .gallery__zoom {
+    flex: none;
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--sun);
+    color: var(--ink);
+    transform: scale(0.6) rotate(-45deg);
+    transition: transform 0.5s var(--ease);
+  }
+  .gallery__zoom :global(.icon) {
+    width: 18px;
+    height: 18px;
+  }
+  .gallery__link:hover .gallery__overlay,
+  .gallery__link:focus-visible .gallery__overlay {
+    opacity: 1;
+  }
+  .gallery__link:hover .gallery__cap,
+  .gallery__link:focus-visible .gallery__cap {
+    transform: none;
+  }
+  .gallery__link:hover .gallery__zoom,
+  .gallery__link:focus-visible .gallery__zoom {
+    transform: none;
+  }
+  @media (hover: none) {
+    .gallery__overlay {
+      opacity: 1;
+      background: linear-gradient(to top, rgb(23 32 66 / 0.6), rgb(23 32 66 / 0) 40%);
+    }
+    .gallery__cap {
+      transform: none;
+    }
+    .gallery__zoom {
+      transform: none;
+      width: 36px;
+      height: 36px;
+    }
+  }
+  .pf-more {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 16px 24px;
+    margin-top: 48px;
+    padding: 28px;
+    border-radius: var(--r-xl);
+    background: var(--sky-soft);
+    text-align: center;
+  }
+  .pf-more__icon {
+    width: 48px;
+    height: 48px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--ink);
+    color: var(--cream);
+  }
+
+  /* ---------- lightbox ---------- */
+  .lb {
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: rgb(15 20 44 / 0.96);
+    color: var(--cream);
+  }
+  .lb[open] {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    animation: lb-in 0.4s var(--ease);
+  }
+  .lb::backdrop {
+    background: transparent;
+  }
+  @keyframes lb-in {
+    from {
+      opacity: 0;
+    }
+  }
+  .lb__bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px var(--gutter);
+  }
+  .lb__counter {
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    font-size: var(--fs-sm);
+  }
+  .lb__figure {
+    display: grid;
+    grid-template-rows: 1fr auto;
+    min-height: 0;
+    padding: 0 clamp(16px, 8vw, 120px) 24px;
+  }
+  .lb__stage {
+    min-height: 0;
+    display: grid;
+    place-items: center;
+  }
+  .lb__stage :global(img) {
+    max-width: 100%;
+    max-height: calc(100svh - 170px);
+    width: auto;
+    height: auto;
+    border-radius: var(--r);
+    box-shadow: var(--shadow-lg);
+    opacity: 0;
+    transform: scale(0.97);
+    transition:
+      opacity 0.35s var(--ease),
+      transform 0.6s var(--ease);
+  }
+  .lb__stage[data-dir='1'] :global(img) {
+    transform: translateX(30px);
+  }
+  .lb__stage[data-dir='-1'] :global(img) {
+    transform: translateX(-30px);
+  }
+  .lb__stage.is-ready :global(img) {
+    opacity: 1;
+    transform: none;
+  }
+  .lb__caption {
+    text-align: center;
+    padding-top: 16px;
+    color: rgb(255 248 236 / 0.85);
+  }
+  .lb__btn {
+    width: 52px;
+    height: 52px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    border: 1px solid rgb(255 248 236 / 0.25);
+    background: rgb(255 248 236 / 0.06);
+    color: var(--cream);
+    transition:
+      background-color 0.3s var(--ease),
+      color 0.3s var(--ease);
+  }
+  .lb__btn:hover {
+    background: var(--sun);
+    color: var(--ink);
+  }
+  .lb__nav {
+    position: fixed;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  .lb__nav--prev {
+    left: clamp(8px, 2vw, 32px);
+  }
+  .lb__nav--next {
+    right: clamp(8px, 2vw, 32px);
+  }
+  @media (max-width: 640px) {
+    .lb__nav {
+      top: auto;
+      bottom: 20px;
+      transform: none;
+    }
+    .lb__figure {
+      padding-bottom: 88px;
+    }
+  }
+</style>
